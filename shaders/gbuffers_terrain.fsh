@@ -13,6 +13,9 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
 varying vec4 shadowPos;
+varying vec3 fragWorldPos;
+varying vec3 fragNormal;
+varying vec3 fragViewDir;
 
 //fix artifacts when colored shadows are enabled
 const bool shadowcolor0Nearest = true;
@@ -62,9 +65,8 @@ void main() {
 	}
         color *= texture2D(lightmap, lm);
 
-        // Apply experimental Latinium lighting
-        // TODO: supply real world position, normal and view direction
-        color.rgb = applyLatiniumLighting(color.rgb, vec3(0.0), vec3(0.0), vec3(0.0));
+        // Apply experimental Latinium lighting with world position and normal
+        color.rgb = applyLatiniumLighting(color.rgb, fragWorldPos, fragNormal, fragViewDir);
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color; //gcolor
