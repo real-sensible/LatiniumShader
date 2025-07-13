@@ -22,6 +22,7 @@ const bool shadowtex1Nearest = true;
 //only using this include for shadowMapResolution,
 //since that has to be declared in the fragment stage in order to do anything.
 #include "/distort.glsl"
+#include "/latinium_lighting.glsl"
 
 void main() {
 	vec4 color = texture2D(texture, texcoord) * glcolor;
@@ -59,7 +60,11 @@ void main() {
 			#endif
 		}
 	}
-	color *= texture2D(lightmap, lm);
+        color *= texture2D(lightmap, lm);
+
+        // Apply experimental Latinium lighting
+        // TODO: supply real world position, normal and view direction
+        color.rgb = applyLatiniumLighting(color.rgb, vec3(0.0), vec3(0.0), vec3(0.0));
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color; //gcolor
