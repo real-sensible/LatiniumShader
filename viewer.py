@@ -4,7 +4,9 @@
 Opens a GLFW window and displays the output of a fragment shader on a fullscreen
 quad. The default shaders are ``shaders/gbuffers_textured.vsh`` and
 ``shaders/gbuffers_textured.fsh`` but alternative paths can be passed on the
-command line.
+command line. The viewer requires the vertex shader to expose ``in_pos`` and
+``in_uv`` attributes. If they are missing or the shader fails to compile, a
+built-in fallback vertex shader is used instead.
 """
 
 from __future__ import annotations
@@ -18,6 +20,20 @@ from array import array
 
 DEFAULT_VSH = Path("shaders/gbuffers_textured.vsh")
 DEFAULT_FSH = Path("shaders/gbuffers_textured.fsh")
+
+# Vertex shader used when the provided shader fails to compile or does not
+# expose the expected attributes. ``in_pos`` and ``in_uv`` are required for
+# the fullscreen quad setup.
+FALLBACK_VERTEX_SHADER = """
+    #version 330 core
+    in vec2 in_pos;
+    in vec2 in_uv;
+    out vec2 texcoord;
+    void main() {
+        texcoord = in_uv;
+        gl_Position = vec4(in_pos, 0.0, 1.0);
+    }
+"""
 
 
 def _read_shader(path: Path) -> str:
@@ -58,20 +74,18 @@ class Viewer:
         vs_src = _read_shader(vertex_path)
         fs_src = _read_shader(fragment_path)
         try:
-            self.prog = self.ctx.program(vertex_shader=vs_src, fragment_shader=fs_src)
+            prog = self.ctx.program(vertex_shader=vs_src, fragment_shader=fs_src)
         except moderngl.Error:
             # Fallback vertex shader for GLSL compatibility issues
-            fallback_vs = """
-                #version 330 core
-                in vec2 in_pos;
-                in vec2 in_uv;
-                out vec2 texcoord;
-                void main() {
-                    texcoord = in_uv;
-                    gl_Position = vec4(in_pos, 0.0, 1.0);
-                }
-            """
-            self.prog = self.ctx.program(vertex_shader=fallback_vs, fragment_shader=fs_src)
+            prog = self.ctx.program(vertex_shader=FALLBACK_VERTEX_SHADER, fragment_shader=fs_src)
+        else:
+            # Ensure required attributes are present
+            if "in_pos" not in prog.attributes or "in_uv" not in prog.attributes:
+                # The provided vertex shader compiled but does not expose the
+                # attributes needed for the quad.
+                prog = self.ctx.program(vertex_shader=FALLBACK_VERTEX_SHADER, fragment_shader=fs_src)
+
+        self.prog = prog
 
         vertices = array(
             "f",

@@ -148,3 +148,7 @@ arguments:
 ```bash
 python viewer.py path/to/vertex.vsh path/to/fragment.fsh
 ```
+
+The viewer expects the vertex shader to define `in_pos` and `in_uv` attributes.
+If these attributes are missing or the shader fails to compile, a built‑in
+fallback vertex shader will be used instead so the quad can still render.
