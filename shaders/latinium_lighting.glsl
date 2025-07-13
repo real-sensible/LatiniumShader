@@ -6,6 +6,7 @@
 #define LATINIUM_USE_GI
 
 uniform vec3 latiniumAmbientColor; // Configurable ambient term
+uniform sampler2D latiniumGIEnvMap; // Environment map used for simple GI
 
 // Future implementation of ambient occlusion
 float computeAmbientOcclusion(vec3 worldPos, vec3 normal) {
@@ -13,16 +14,26 @@ float computeAmbientOcclusion(vec3 worldPos, vec3 normal) {
     return 1.0;
 }
 
-// Future implementation of specular highlights
+// Basic Blinn-Phong style specular highlight
 vec3 computeSpecular(vec3 viewDir, vec3 normal) {
-    // TODO: add specular lighting
+#ifdef LATINIUM_USE_SPECULAR
+    vec3 refl = reflect(-viewDir, normal);
+    float spec = pow(max(refl.z, 0.0), 32.0);
+    return vec3(spec);
+#else
     return vec3(0.0);
+#endif
 }
 
-// Future global illumination placeholder
+// Simple environment map based GI approximation
 vec3 computeGlobalIllumination(vec3 worldPos, vec3 normal) {
-    // TODO: implement ReSTIR based GI
+#ifdef LATINIUM_USE_GI
+    vec2 envUV = normal.xy * 0.5 + 0.5;
+    vec3 envColor = texture2D(latiniumGIEnvMap, envUV).rgb;
+    return envColor * 0.2; // subtle contribution
+#else
     return vec3(0.0);
+#endif
 }
 
 // Entry point used by fragment shaders

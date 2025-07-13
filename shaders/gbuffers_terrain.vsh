@@ -12,6 +12,9 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
 varying vec4 shadowPos;
+varying vec3 fragWorldPos;
+varying vec3 fragNormal;
+varying vec3 fragViewDir;
 
 #include "/distort.glsl"
 
@@ -27,7 +30,10 @@ void main() {
 		if (mc_Entity.x == 10000.0) lightDot = 1.0;
 	#endif
 
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+        vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+        fragViewDir = normalize(-viewPos.xyz);
+        fragWorldPos = (gbufferModelViewInverse * viewPos).xyz;
+        fragNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
 	if (lightDot > 0.0) { //vertex is facing towards the sun
 		vec4 playerPos = gbufferModelViewInverse * viewPos;
 		shadowPos = shadowProjection * (shadowModelView * playerPos); //convert to shadow ndc space.

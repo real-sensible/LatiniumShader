@@ -10,6 +10,8 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
 varying vec3 shadowPos; //normals don't exist for particles
+varying vec3 fragWorldPos;
+varying vec3 fragViewDir;
 
 #include "/distort.glsl"
 
@@ -18,8 +20,10 @@ void main() {
 	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 	glcolor = gl_Color;
 
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	vec4 playerPos = gbufferModelViewInverse * viewPos;
+        vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+        fragViewDir = normalize(-viewPos.xyz);
+        fragWorldPos = (gbufferModelViewInverse * viewPos).xyz;
+        vec4 playerPos = gbufferModelViewInverse * viewPos;
 	shadowPos = (shadowProjection * (shadowModelView * playerPos)).xyz; //convert to shadow ndc space.
 	float bias = computeBias(shadowPos);
 	shadowPos = distort(shadowPos); //apply shadow distortion.
