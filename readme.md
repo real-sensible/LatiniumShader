@@ -115,3 +115,36 @@ It has absolutely nothing to do with the fact that I have no idea how PCSS works
 
 ## Latinium Shader Development
 This project begins the experimental Latinium shader. Current work adds scaffolding for advanced lighting such as ambient occlusion, specular highlights and future global illumination. Many functions are placeholders for now and will be expanded in later iterations.
+
+## Shader Viewer
+
+A small Python script named `viewer.py` is included for previewing the fragment
+shaders outside of Minecraft. The viewer opens a window using `glfw` and renders
+a fullscreen quad with `moderngl`.
+
+### Requirements
+
+- Python 3
+- `moderngl`
+- `glfw`
+
+Install the dependencies with `pip`:
+
+```bash
+pip install moderngl glfw
+```
+
+### Usage
+
+To launch with the default shader pair:
+
+```bash
+python viewer.py
+```
+
+Alternative vertex and fragment shader paths can be supplied as positional
+arguments:
+
+```bash
+python viewer.py path/to/vertex.vsh path/to/fragment.fsh
+```
