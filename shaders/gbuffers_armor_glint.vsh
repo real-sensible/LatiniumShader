@@ -1,13 +1,21 @@
-#version 120
+#version 330
 
-varying vec2 lmcoord;
-varying vec2 texcoord;
-varying vec4 glcolor;
+in vec3 in_pos;
+in vec2 in_uv;
+in vec4 in_color;
+
+uniform mat4 gbufferModelView;
+uniform mat4 projectionMatrix;
+
+out vec2 lmcoord;
+out vec2 texcoord;
+out vec4 glcolor;
 
 void main() {
-	//use same transforms as entities and hand to avoid z-fighting issues
-	gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * gl_Vertex);
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-	glcolor = gl_Color;
+        //use same transforms as entities and hand to avoid z-fighting issues
+        vec4 viewPos = gbufferModelView * vec4(in_pos, 1.0);
+        gl_Position = projectionMatrix * viewPos;
+        texcoord = in_uv;
+        lmcoord = in_uv;
+        glcolor = in_color;
 }

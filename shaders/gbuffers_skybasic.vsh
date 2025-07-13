@@ -1,8 +1,15 @@
-#version 120
+#version 330
 
-varying vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
+in vec3 in_pos;
+in vec4 in_color;
+
+uniform mat4 gbufferModelView;
+uniform mat4 projectionMatrix;
+
+out vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
 
 void main() {
-	gl_Position = ftransform();
-	starData = vec4(gl_Color.rgb, float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0));
+        vec4 viewPos = gbufferModelView * vec4(in_pos, 1.0);
+        gl_Position = projectionMatrix * viewPos;
+        starData = vec4(in_color.rgb, float(in_color.r == in_color.g && in_color.g == in_color.b && in_color.r > 0.0));
 }

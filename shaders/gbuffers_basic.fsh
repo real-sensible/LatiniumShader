@@ -1,14 +1,15 @@
-#version 120
+#version 330
 
 uniform sampler2D lightmap;
 
-varying vec2 lmcoord;
-varying vec4 glcolor;
+in vec2 lmcoord;
+in vec4 glcolor;
+
+out vec4 out_color;
 
 void main() {
-	vec4 color = glcolor;
-	color *= texture2D(lightmap, lmcoord);
+    vec4 color = glcolor;
+    color *= texture(lightmap, lmcoord);
 
-/* DRAWBUFFERS:0 */
-	gl_FragData[0] = color; //gcolor
+    out_color = color; // gcolor
 }
