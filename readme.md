@@ -112,3 +112,6 @@ Shadow distortion won't get you up to perfectly crisp shadow edges, but it's cer
 There are other solutions out there as well, like PCSS or CSM, but distortion is the easiest one to wrap your head around.
 That's why I used that in this example pack.
 It has absolutely nothing to do with the fact that I have no idea how PCSS works.
+
+## Latinium Shader Development
+This project begins the experimental Latinium shader. Current work adds scaffolding for advanced lighting such as ambient occlusion, specular highlights and future global illumination. Many functions are placeholders for now and will be expanded in later iterations.

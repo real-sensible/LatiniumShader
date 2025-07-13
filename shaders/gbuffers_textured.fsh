@@ -9,6 +9,8 @@ uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D texture;
 
+#include "/latinium_lighting.glsl"
+
 varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
@@ -53,7 +55,11 @@ void main() {
 			}
 		#endif
 	}
-	color *= texture2D(lightmap, lm);
+        color *= texture2D(lightmap, lm);
+
+        // Apply experimental Latinium lighting
+        // TODO: supply real world position, normal and view direction
+        color.rgb = applyLatiniumLighting(color.rgb, vec3(0.0), vec3(0.0), vec3(0.0));
 
 /* DRAWBUFFERS:0 */
 	gl_FragData[0] = color; //gcolor
