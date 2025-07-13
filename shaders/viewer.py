@@ -19,7 +19,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_VSH = SCRIPT_DIR / "gbuffers_textured.vsh"
 DEFAULT_FSH = SCRIPT_DIR / "gbuffers_textured.fsh"
 
-
 def _read_shader(path: Path, visited: set[Path] | None = None) -> str:
     """Read a shader file and resolve #include directives recursively."""
     if visited is None:
@@ -49,8 +48,7 @@ def _read_shader(path: Path, visited: set[Path] | None = None) -> str:
             except IndexError:
                 raise ValueError(f"Malformed #include directive in {path}: {line}")
 
-            # Always treat includes as relative!
-            inc = inc.lstrip("/\\")  # Remove leading slash or backslash if present
+            inc = inc.lstrip("/\\")
             inc_path = (path.parent / inc).resolve()
             print(f"[DEBUG] Including file: {inc_path}")
 
@@ -70,7 +68,6 @@ def _read_shader(path: Path, visited: set[Path] | None = None) -> str:
 
 class Viewer:
     def __init__(self, vertex_path: Path, fragment_path: Path) -> None:
-        # Validate shader paths
         for path in (vertex_path, fragment_path):
             if not path.exists():
                 raise FileNotFoundError(
@@ -85,7 +82,7 @@ class Viewer:
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-        glfw.window_hint(glfw.SAMPLES, 4)  # Enable multisampling
+        glfw.window_hint(glfw.SAMPLES, 4)
 
         self.window = glfw.create_window(800, 600, "Minecraft Shader Viewer", None, None)
         if not self.window:
@@ -93,7 +90,7 @@ class Viewer:
             raise RuntimeError("Failed to create GLFW window")
 
         glfw.make_context_current(self.window)
-        glfw.swap_interval(1)  # Enable vsync
+        glfw.swap_interval(1)
         self.ctx = moderngl.create_context()
 
         vs_src = _read_shader(vertex_path)
@@ -102,7 +99,6 @@ class Viewer:
             self.prog = self.ctx.program(vertex_shader=vs_src, fragment_shader=fs_src)
         except moderngl.Error as e:
             print(f"Shader compilation failed: {e}")
-            # Fallback vertex shader
             fallback_vs = """
                 #version 330 core
                 in vec2 in_pos;
@@ -118,10 +114,10 @@ class Viewer:
         vertices = array(
             "f",
             [
-                -1.0, -1.0, 0.0, 0.0,  # Bottom-left
-                 1.0, -1.0, 1.0, 0.0,  # Bottom-right
-                -1.0,  1.0, 0.0, 1.0,  # Top-left
-                 1.0,  1.0, 1.0, 1.0,  # Top-right
+                -1.0, -1.0, 0.0, 0.0,
+                 1.0, -1.0, 1.0, 0.0,
+                -1.0,  1.0, 0.0, 1.0,
+                 1.0,  1.0, 1.0, 1.0,
             ],
         )
         self.vbo = self.ctx.buffer(vertices.tobytes())
@@ -133,7 +129,6 @@ class Viewer:
         while not glfw.window_should_close(self.window):
             glfw.poll_events()
 
-            # Update shader uniforms for Minecraft-like effects
             if "iTime" in self.prog:
                 self.prog["iTime"].value = glfw.get_time()
             if "iResolution" in self.prog:
