@@ -1,46 +1,49 @@
-#version 120
+#version 330
+
+in vec3 in_pos;
+in vec3 in_normal;
+in vec2 in_uv;
+in vec4 in_color;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 uniform vec3 shadowLightPosition;
+uniform mat4 projectionMatrix;
 
-varying vec2 lmcoord;
-varying vec2 texcoord;
-varying vec4 glcolor;
-varying vec4 shadowPos;
+out vec2 lmcoord;
+out vec2 texcoord;
+out vec4 glcolor;
+out vec4 shadowPos;
 
 #include "/distort.glsl"
 
 void main() {
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-	glcolor = gl_Color;
-	
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	float lightDot = dot(normalize(shadowLightPosition), normalize(gl_NormalMatrix * gl_Normal));
-	if (lightDot > 0.0) { //vertex is facing towards the sun
-		vec4 playerPos = gbufferModelViewInverse * viewPos;
-		shadowPos = shadowProjection * (shadowModelView * playerPos); //convert to shadow space
-		float bias = computeBias(shadowPos.xyz);
-		shadowPos.xyz = distort(shadowPos.xyz); //apply shadow distortion
-		shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
-		//apply shadow bias.
-		#ifdef NORMAL_BIAS
-			//we are allowed to project the normal because shadowProjection is purely a scalar matrix.
-			//a faster way to apply the same operation would be to multiply by shadowProjection[0][0].
-			vec4 normal = shadowProjection * vec4(mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal)), 1.0);
-			shadowPos.xyz += normal.xyz / normal.w * bias;
-		#else
-			shadowPos.z -= bias / abs(lightDot);
-		#endif
-	}
-	else { //vertex is facing away from the sun
-		lmcoord.y *= SHADOW_BRIGHTNESS; //guaranteed to be in shadows. reduce light level immediately.
-		shadowPos = vec4(0.0); //mark that this vertex does not need to check the shadow map.
-	}
-	shadowPos.w = lightDot;
-	//use consistent transforms for entities and hand so that armor glint doesn't have z-fighting issues.
-	gl_Position = gl_ProjectionMatrix * viewPos;
+    texcoord = in_uv;
+    lmcoord  = in_uv;
+    glcolor = in_color;
+
+    vec4 viewPos = gbufferModelView * vec4(in_pos, 1.0);
+    vec3 normalView = normalize((gbufferModelView * vec4(in_normal, 0.0)).xyz);
+    float lightDot = dot(normalize(shadowLightPosition), normalView);
+    if (lightDot > 0.0) { // vertex is facing towards the sun
+        vec4 playerPos = gbufferModelViewInverse * viewPos;
+        shadowPos = shadowProjection * (shadowModelView * playerPos);
+        float bias = computeBias(shadowPos.xyz);
+        shadowPos.xyz = distort(shadowPos.xyz);
+        shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+#ifdef NORMAL_BIAS
+        vec3 worldNormal = mat3(gbufferModelViewInverse) * normalView;
+        vec4 normal = shadowProjection * vec4(mat3(shadowModelView) * worldNormal, 1.0);
+        shadowPos.xyz += normal.xyz / normal.w * bias;
+#else
+        shadowPos.z -= bias / abs(lightDot);
+#endif
+    } else {
+        lmcoord.y *= SHADOW_BRIGHTNESS;
+        shadowPos = vec4(0.0);
+    }
+    shadowPos.w = lightDot;
+    gl_Position = projectionMatrix * viewPos;
 }
