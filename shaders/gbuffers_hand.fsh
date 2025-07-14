@@ -7,7 +7,7 @@ uniform sampler2D lightmap;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
-uniform sampler2D texture;
+uniform sampler2D diffuseTexture;
 
 in vec2 lmcoord;
 in vec2 texcoord;
@@ -22,7 +22,7 @@ const bool shadowtex0Nearest = true;
 const bool shadowtex1Nearest = true;
 
 void main() {
-        vec4 color = texture(texture, texcoord) * glcolor;
+        vec4 color = texture(diffuseTexture, texcoord) * glcolor;
         vec2 lm = lmcoord;
 	if (shadowPos.w > 0.0) {
 		//surface is facing towards shadowLightPosition

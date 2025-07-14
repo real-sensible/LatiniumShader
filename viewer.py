@@ -23,7 +23,7 @@ SCRIPT_DIR = Path(__file__).parent
 MODEL_PATH = SCRIPT_DIR / "models" / "Box.glb"
 
 IRIS_TEXTURE_UNITS = {
-    "texture": 0,
+    "diffuseTexture": 0,
     "lightmap": 1,
     "shadowtex0": 2,
     "shadowtex1": 3,
