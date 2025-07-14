@@ -35,20 +35,11 @@ void main() {
         fragWorldPos = (gbufferModelViewInverse * viewPos).xyz;
         fragNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
 	if (lightDot > 0.0) { //vertex is facing towards the sun
-<<<<<<< HEAD
-                vec4 playerPos = gbufferModelViewInverse * viewPos;
-                shadowPos = shadowProjection * (shadowModelView * playerPos);
-                shadowPos.xyz /= shadowPos.w;
-                float bias = computeBias(shadowPos.xyz);
-                shadowPos.xyz = distort(shadowPos.xyz);
-                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
-=======
 		vec4 playerPos = gbufferModelViewInverse * viewPos;
 		shadowPos = shadowProjection * (shadowModelView * playerPos); //convert to shadow ndc space.
 		float bias = computeBias(shadowPos.xyz);
 		shadowPos.xyz = distort(shadowPos.xyz); //apply shadow distortion
 		shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
->>>>>>> parent of 6150846 (Update shaders to GLSL 330)
 		//apply shadow bias.
 		#ifdef NORMAL_BIAS
 			//we are allowed to project the normal because shadowProjection is purely a scalar matrix.

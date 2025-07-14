@@ -29,7 +29,7 @@ vec3 computeSpecular(vec3 viewDir, vec3 normal) {
 vec3 computeGlobalIllumination(vec3 worldPos, vec3 normal) {
 #ifdef LATINIUM_USE_GI
     vec2 envUV = normal.xy * 0.5 + 0.5;
-    vec3 envColor = texture(latiniumGIEnvMap, envUV).rgb;
+    vec3 envColor = texture2D(latiniumGIEnvMap, envUV).rgb;
     return envColor * 0.2; // subtle contribution
 #else
     return vec3(0.0);

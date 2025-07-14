@@ -1,13 +1,13 @@
-#version 330
+#version 120
 
-uniform sampler2D diffuseTexture;
+uniform sampler2D texture;
 
-in vec2 texcoord;
-in vec4 glcolor;
-
-out vec4 out_color;
+varying vec2 texcoord;
+varying vec4 glcolor;
 
 void main() {
-    vec4 color = texture(diffuseTexture, texcoord) * glcolor;
-    out_color = color; // gcolor
+	vec4 color = texture2D(texture, texcoord) * glcolor;
+
+/* DRAWBUFFERS:0 */
+	gl_FragData[0] = color; //gcolor
 }

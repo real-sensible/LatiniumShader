@@ -7,7 +7,7 @@ uniform sampler2D lightmap;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
-uniform sampler2D diffuseTexture;
+uniform sampler2D texture;
 
 varying vec2 lmcoord;
 varying vec2 texcoord;
@@ -28,13 +28,8 @@ const bool shadowtex1Nearest = true;
 #include "/latinium_lighting.glsl"
 
 void main() {
-<<<<<<< HEAD
-        vec4 color = texture(diffuseTexture, texcoord) * glcolor;
-        vec2 lm = lmcoord;
-=======
 	vec4 color = texture2D(texture, texcoord) * glcolor;
 	vec2 lm = lmcoord;
->>>>>>> parent of 6150846 (Update shaders to GLSL 330)
 	if (shadowPos.w > 0.0) {
 		//surface is facing towards shadowLightPosition
 		#if COLORED_SHADOWS == 0
