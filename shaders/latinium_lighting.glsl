@@ -3,15 +3,43 @@
 
 // Placeholder settings for the experimental Latinium shader
 #define LATINIUM_USE_SPECULAR
+
 #define LATINIUM_USE_GI
+#define LATINIUM_AO_RADIUS 4.0 // Sample radius in pixels [1 2 3 4 5 6 7 8 9 10]
+#define LATINIUM_AO_STRENGTH 1.0 // Intensity of SSAO effect [0.0 0.5 1.0 1.5 2.0]
 
 uniform vec3 latiniumAmbientColor; // Configurable ambient term
 uniform sampler2D latiniumGIEnvMap; // Environment map used for simple GI
+uniform sampler2D depthtex0;       // Depth buffer for SSAO
+uniform float viewWidth;
+uniform float viewHeight;
 
-// Future implementation of ambient occlusion
+// Screen-space ambient occlusion implementation
 float computeAmbientOcclusion(vec3 worldPos, vec3 normal) {
-    // TODO: integrate AO sampling
-    return 1.0;
+    vec2 texel = LATINIUM_AO_RADIUS / vec2(viewWidth, viewHeight);
+    vec2 centerUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+    float centerDepth = texture2D(depthtex0, centerUV).r;
+
+    const vec2 offsets[8] = vec2[8](
+        vec2( 1.0,  0.0),
+        vec2(-1.0,  0.0),
+        vec2( 0.0,  1.0),
+        vec2( 0.0, -1.0),
+        vec2( 1.0,  1.0),
+        vec2(-1.0,  1.0),
+        vec2( 1.0, -1.0),
+        vec2(-1.0, -1.0)
+    );
+
+    float occlusion = 0.0;
+    for (int i = 0; i < 8; ++i) {
+        vec2 sampleUV = centerUV + offsets[i] * texel;
+        float sampleDepth = texture2D(depthtex0, sampleUV).r;
+        occlusion += step(centerDepth + 0.002, sampleDepth);
+    }
+
+    float ao = 1.0 - (occlusion / 8.0) * LATINIUM_AO_STRENGTH;
+    return clamp(ao, 0.0, 1.0);
 }
 
 // Basic Blinn-Phong style specular highlight
