@@ -115,3 +115,13 @@ It has absolutely nothing to do with the fact that I have no idea how PCSS works
 
 ## Latinium Shader Development
 This project begins the experimental Latinium shader. Current work adds scaffolding for advanced lighting such as ambient occlusion, specular highlights and future global illumination. Many functions are placeholders for now and will be expanded in later iterations.
+
+### ReSTIR Global Illumination
+The latest addition experiments with a simplified ReSTIR based GI solution. Two
+new shader passes handle sampling and temporal/spatial resampling of indirect
+lighting. Results are stored in per‑pixel reservoirs that are later fetched by
+`computeGlobalIllumination()`.
+
+Using ReSTIR GI requires additional fullscreen passes and extra textures which
+may reduce performance on low end hardware. Disable this option or lower your
+render resolution if frame rates drop significantly.
