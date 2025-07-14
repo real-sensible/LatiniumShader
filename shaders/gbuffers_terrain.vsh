@@ -42,10 +42,11 @@ void main() {
         fragNormal = normalize(mat3(gbufferModelViewInverse) * normalView);
 	if (lightDot > 0.0) { //vertex is facing towards the sun
                 vec4 playerPos = gbufferModelViewInverse * viewPos;
-                shadowPos = shadowProjection * (shadowModelView * playerPos); //convert to shadow ndc space.
-		float bias = computeBias(shadowPos.xyz);
-		shadowPos.xyz = distort(shadowPos.xyz); //apply shadow distortion
-		shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
+                shadowPos = shadowProjection * (shadowModelView * playerPos);
+                shadowPos.xyz /= shadowPos.w;
+                float bias = computeBias(shadowPos.xyz);
+                shadowPos.xyz = distort(shadowPos.xyz);
+                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 		//apply shadow bias.
 		#ifdef NORMAL_BIAS
 			//we are allowed to project the normal because shadowProjection is purely a scalar matrix.

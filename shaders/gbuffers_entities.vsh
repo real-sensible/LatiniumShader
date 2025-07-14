@@ -30,6 +30,7 @@ void main() {
     if (lightDot > 0.0) {
         vec4 playerPos = gbufferModelViewInverse * viewPos;
         shadowPos = shadowProjection * (shadowModelView * playerPos);
+        shadowPos.xyz /= shadowPos.w;
         float bias = computeBias(shadowPos.xyz);
         shadowPos.xyz = distort(shadowPos.xyz);
         shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;

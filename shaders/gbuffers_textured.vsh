@@ -31,7 +31,9 @@ void main() {
     glcolor.xyz += normal * 0.0001;
 
     vec4 playerPos = gbufferModelViewInverse * viewPos;
-    shadowPos = (shadowProjection * shadowModelView * playerPos).xyz;
+    vec4 shadowClip = shadowProjection * shadowModelView * playerPos;
+    shadowClip.xyz /= shadowClip.w;
+    shadowPos = shadowClip.xyz;
 
     gl_Position = projectionMatrix * viewPos;
 }
