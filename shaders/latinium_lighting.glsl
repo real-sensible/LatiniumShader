@@ -7,9 +7,6 @@
 
 uniform vec3 latiniumAmbientColor; // Configurable ambient term
 uniform sampler2D latiniumGIEnvMap; // Environment map used for simple GI
-uniform sampler2D restirGIReservoir; // ReSTIR resolved GI texture
-uniform float viewWidth;
-uniform float viewHeight;
 
 // Future implementation of ambient occlusion
 float computeAmbientOcclusion(vec3 worldPos, vec3 normal) {
@@ -31,14 +28,9 @@ vec3 computeSpecular(vec3 viewDir, vec3 normal) {
 // Simple environment map based GI approximation
 vec3 computeGlobalIllumination(vec3 worldPos, vec3 normal) {
 #ifdef LATINIUM_USE_GI
-    vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-    vec3 giColor = texture2D(restirGIReservoir, screenUV).rgb;
-    // Fallback to environment map if reservoir has no data
-    if (length(giColor) == 0.0) {
-        vec2 envUV = normal.xy * 0.5 + 0.5;
-        giColor = texture2D(latiniumGIEnvMap, envUV).rgb * 0.2;
-    }
-    return giColor;
+    vec2 envUV = normal.xy * 0.5 + 0.5;
+    vec3 envColor = texture2D(latiniumGIEnvMap, envUV).rgb;
+    return envColor * 0.2; // subtle contribution
 #else
     return vec3(0.0);
 #endif
