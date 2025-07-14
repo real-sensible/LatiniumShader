@@ -7,7 +7,7 @@ uniform sampler2D lightmap;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
-uniform sampler2D texture;
+uniform sampler2D diffuseTexture;
 
 #include "latinium_lighting.glsl"
 
@@ -27,7 +27,7 @@ const bool shadowtex0Nearest = true;
 const bool shadowtex1Nearest = true;
 
 void main() {
-    vec4 color = texture(texture, texcoord) * glcolor;
+    vec4 color = texture(diffuseTexture, texcoord) * glcolor;
     vec2 lm = lmcoord;
 
     #if COLORED_SHADOWS == 0
