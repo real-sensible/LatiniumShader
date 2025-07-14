@@ -1,15 +1,8 @@
-#version 330
+#version 120
 
-in vec3 in_pos;
-in vec2 in_uv;
-
-uniform mat4 gbufferModelView;
-uniform mat4 projectionMatrix;
-
-out vec2 texcoord;
+varying vec2 texcoord;
 
 void main() {
-        vec4 viewPos = gbufferModelView * vec4(in_pos, 1.0);
-        gl_Position = projectionMatrix * viewPos;
-        texcoord = in_uv;
+	gl_Position = ftransform();
+	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }

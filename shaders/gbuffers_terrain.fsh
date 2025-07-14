@@ -1,4 +1,4 @@
-#version 330
+#version 120
 
 #define COLORED_SHADOWS 1 //0: Stained glass will cast ordinary shadows. 1: Stained glass will cast colored shadows. 2: Stained glass will not cast any shadows. [0 1 2]
 #define SHADOW_BRIGHTNESS 0.75 //Light levels are multiplied by this number when the surface is in shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
@@ -9,15 +9,13 @@ uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D diffuseTexture;
 
-in vec2 lmcoord;
-in vec2 texcoord;
-in vec4 glcolor;
-in vec4 shadowPos;
-in vec3 fragWorldPos;
-in vec3 fragNormal;
-in vec3 fragViewDir;
-
-out vec4 out_color;
+varying vec2 lmcoord;
+varying vec2 texcoord;
+varying vec4 glcolor;
+varying vec4 shadowPos;
+varying vec3 fragWorldPos;
+varying vec3 fragNormal;
+varying vec3 fragViewDir;
 
 //fix artifacts when colored shadows are enabled
 const bool shadowcolor0Nearest = true;
@@ -30,17 +28,22 @@ const bool shadowtex1Nearest = true;
 #include "/latinium_lighting.glsl"
 
 void main() {
+<<<<<<< HEAD
         vec4 color = texture(diffuseTexture, texcoord) * glcolor;
         vec2 lm = lmcoord;
+=======
+	vec4 color = texture2D(texture, texcoord) * glcolor;
+	vec2 lm = lmcoord;
+>>>>>>> parent of 6150846 (Update shaders to GLSL 330)
 	if (shadowPos.w > 0.0) {
 		//surface is facing towards shadowLightPosition
 		#if COLORED_SHADOWS == 0
 			//for normal shadows, only consider the closest thing to the sun,
 			//regardless of whether or not it's opaque.
-                        if (texture(shadowtex0, shadowPos.xy).r < shadowPos.z) {
+			if (texture2D(shadowtex0, shadowPos.xy).r < shadowPos.z) {
 		#else
 			//for invisible and colored shadows, first check the closest OPAQUE thing to the sun.
-                        if (texture(shadowtex1, shadowPos.xy).r < shadowPos.z) {
+			if (texture2D(shadowtex1, shadowPos.xy).r < shadowPos.z) {
 		#endif
 			//surface is in shadows. reduce light level.
 			lm.y *= SHADOW_BRIGHTNESS;
@@ -51,10 +54,10 @@ void main() {
 			#if COLORED_SHADOWS == 1
 				//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
 				//perform a 2nd check to see if there's anything translucent between us and the sun.
-                                if (texture(shadowtex0, shadowPos.xy).r < shadowPos.z) {
+				if (texture2D(shadowtex0, shadowPos.xy).r < shadowPos.z) {
 					//surface has translucent object between it and the sun. modify its color.
 					//if the block light is high, modify the color less.
-                                        vec4 shadowLightColor = texture(shadowcolor0, shadowPos.xy);
+					vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
 					//make colors more intense when the shadow light color is more opaque.
 					shadowLightColor.rgb = mix(vec3(1.0), shadowLightColor.rgb, shadowLightColor.a);
 					//also make colors less intense when the block light level is high.
@@ -65,11 +68,11 @@ void main() {
 			#endif
 		}
 	}
-        color *= texture(lightmap, lm);
+        color *= texture2D(lightmap, lm);
 
         // Apply experimental Latinium lighting with world position and normal
         color.rgb = applyLatiniumLighting(color.rgb, fragWorldPos, fragNormal, fragViewDir);
 
 /* DRAWBUFFERS:0 */
-        out_color = color; // gcolor
+	gl_FragData[0] = color; //gcolor
 }

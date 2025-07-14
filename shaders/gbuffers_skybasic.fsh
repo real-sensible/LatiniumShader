@@ -1,4 +1,4 @@
-#version 330
+#version 120
 
 uniform float viewHeight;
 uniform float viewWidth;
@@ -7,9 +7,7 @@ uniform mat4 gbufferProjectionInverse;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 
-in vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
-
-out vec4 out_color;
+varying vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
 
 const float sunPathRotation = 30.0;
 
@@ -34,5 +32,5 @@ void main() {
 	}
 
 /* DRAWBUFFERS:0 */
-        out_color = vec4(color, 1.0); // gcolor
+	gl_FragData[0] = vec4(color, 1.0); //gcolor
 }

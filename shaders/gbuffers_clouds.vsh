@@ -1,18 +1,10 @@
-#version 330
+#version 120
 
-in vec3 in_pos;
-in vec2 in_uv;
-in vec4 in_color;
-
-uniform mat4 gbufferModelView;
-uniform mat4 projectionMatrix;
-
-out vec2 texcoord;
-out vec4 glcolor;
+varying vec2 texcoord;
+varying vec4 glcolor;
 
 void main() {
-        vec4 viewPos = gbufferModelView * vec4(in_pos, 1.0);
-        gl_Position = projectionMatrix * viewPos;
-        texcoord = in_uv;
-        glcolor = in_color;
+	gl_Position = ftransform();
+	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	glcolor = gl_Color;
 }
