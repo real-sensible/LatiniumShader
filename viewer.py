@@ -8,6 +8,8 @@ import sys
 import traceback
 from pathlib import Path
 
+from utils.debug import get_logger
+
 import glfw  # type: ignore
 import moderngl  # type: ignore
 import numpy as np
@@ -31,47 +33,49 @@ IRIS_TEXTURE_UNITS = {
     "latiniumGIEnvMap": 5,
 }
 
+log = get_logger(__name__)
+
 def recompile(ctx: moderngl.Context, vertex_path: Path, fragment_path: Path):
-    print(f"[DEBUG] Recompiling shaders: {vertex_path}, {fragment_path}")
+    log.debug(f"Recompiling shaders: {vertex_path}, {fragment_path}")
     try:
         vs_src = read_shader(vertex_path)
         fs_src = read_shader(fragment_path)
         prog = ctx.program(vertex_shader=vs_src, fragment_shader=fs_src)
-        print("[DEBUG] Shader compilation successful.")
+        log.debug("Shader compilation successful.")
         return prog
     except Exception as e:
-        print("[ERROR] Shader compilation failed:", e)
+        log.error("Shader compilation failed: %s", e)
         traceback.print_exc()
         raise
 
 import imgui
 def main(argv: list[str] | None = None) -> None:
     imgui.create_context()
-    print("[TRACE] Entered main()")
+    log.debug("Entered main()")
     args = argv if argv is not None else sys.argv[1:]
     vsh = Path(args[0]) if args else SCRIPT_DIR / "shaders" / "gbuffers_textured.vsh"
     fsh = Path(args[1]) if len(args) > 1 else SCRIPT_DIR / "shaders" / "gbuffers_textured.fsh"
-    print(f"[DEBUG] Vertex shader: {vsh}, Fragment shader: {fsh}")
+    log.debug(f"Vertex shader: {vsh}, Fragment shader: {fsh}")
 
-    print("[INFO] Initializing GLFW...")
+    log.info("Initializing GLFW...")
     if not glfw.init():
-        print("[ERROR] Failed to init GLFW")
+        log.error("Failed to init GLFW")
         raise RuntimeError("Failed to init GLFW")
 
-    print("[INFO] Creating window...")
+    log.info("Creating window...")
     window = glfw.create_window(800, 600, "Latinium Viewer", None, None)
     if not window:
-        print("[ERROR] Failed to create window")
+        log.error("Failed to create window")
         glfw.terminate()
         raise RuntimeError("Failed to create window")
 
     glfw.make_context_current(window)
-    print("[INFO] Creating ModernGL context...")
+    log.info("Creating ModernGL context...")
     try:
         ctx = moderngl.create_context()
-        print("[DEBUG] ModernGL context created:", ctx)
+        log.debug("ModernGL context created: %s", ctx)
     except Exception as e:
-        print("[ERROR] ModernGL context creation failed:", e)
+        log.error("ModernGL context creation failed: %s", e)
         traceback.print_exc()
         glfw.terminate()
         raise
@@ -79,45 +83,45 @@ def main(argv: list[str] | None = None) -> None:
     try:
         prog = recompile(ctx, vsh, fsh)
     except Exception as e:
-        print("[ERROR] Initial shader compilation failed:", e)
+        log.error("Initial shader compilation failed: %s", e)
         glfw.terminate()
         raise
 
-    print("[INFO] Shader _members:")
+    log.info("Shader _members:")
     for name, member in prog._members.items():
-        print(f"{name}: {type(member).__name__}")
+        log.info(f"{name}: {type(member).__name__}")
 
-    print("Program attributes:")
+    log.info("Program attributes:")
     for attr in prog._members:
         if isinstance(prog._members[attr], moderngl.Attribute):
-            print(f"  {attr}")
+            log.info(f"  {attr}")
 
-    print(f"[DEBUG] Loading mesh from: {MODEL_PATH}")
+    log.debug(f"Loading mesh from: {MODEL_PATH}")
     try:
         data, indices = load_mesh(MODEL_PATH)
-        print("[DEBUG] Mesh loaded successfully.")
-        print("First 5 vertices:")
-        print(data[:5])
+        log.debug("Mesh loaded successfully.")
+        log.debug("First 5 vertices:")
+        log.debug(str(data[:5]))
     except Exception as e:
-        print("[ERROR] Mesh loading failed:", e)
+        log.error("Mesh loading failed: %s", e)
         traceback.print_exc()
         glfw.terminate()
         raise
 
-    print("Data shape:", data.shape)
-    print("Indices shape:", indices.shape)
-    print("Indices dtype:", indices.dtype)
-    print("Max index:", indices.max())
+    log.info("Data shape: %s", data.shape)
+    log.info("Indices shape: %s", indices.shape)
+    log.info("Indices dtype: %s", indices.dtype)
+    log.info("Max index: %s", indices.max())
 
-    print("[INFO] Creating VBO/IBO...")
+    log.info("Creating VBO/IBO...")
     try:
         vbo = ctx.buffer(data.tobytes())
         if indices.dtype != np.uint32:
-            print("[DEBUG] Indices dtype not uint32, converting...")
+            log.debug("Indices dtype not uint32, converting...")
             indices = indices.astype(np.uint32)
         ibo = ctx.buffer(indices.tobytes())
     except Exception as e:
-        print("[ERROR] Buffer creation failed:", e)
+        log.error("Buffer creation failed: %s", e)
         traceback.print_exc()
         glfw.terminate()
         raise
@@ -128,72 +132,72 @@ def main(argv: list[str] | None = None) -> None:
         (vbo, "2f", "in_uv"),
     ]
 
-    print("[INFO] Creating VAO...")
+    log.info("Creating VAO...")
     try:
         vao = ctx.vertex_array(prog, vao_content, ibo)
-        print("[DEBUG] VAO created:", vao)
+        log.debug("VAO created: %s", vao)
     except Exception as e:
-        print("[ERROR] VAO creation failed:", e)
+        log.error("VAO creation failed: %s", e)
         traceback.print_exc()
         glfw.terminate()
         raise
 
-    print("[INFO] Creating default white texture...")
+    log.info("Creating default white texture...")
     try:
         white_tex = ctx.texture((1, 1), 4, b"\xff\xff\xff\xff")
-        print("[DEBUG] White texture created.")
+        log.debug("White texture created.")
     except Exception as e:
-        print("[ERROR] Texture creation failed:", e)
+        log.error("Texture creation failed: %s", e)
         traceback.print_exc()
         glfw.terminate()
         raise
 
-    print("[INFO] Creating overlay...")
+    log.info("Creating overlay...")
     overlay = None
     try:
         overlay = Overlay(window)
-        print("[DEBUG] Overlay created.")
+        log.debug("Overlay created.")
     except Exception as e:
-        print("[ERROR] Overlay creation failed:", e)
+        log.error("Overlay creation failed: %s", e)
         traceback.print_exc()
 
     def reload_shaders():
         nonlocal prog, vao
-        print("[INFO] Reloading shaders...")
+        log.info("Reloading shaders...")
         try:
             prog = recompile(ctx, vsh, fsh)
             vao = ctx.vertex_array(prog, vao_content, ibo)
-            print("[INFO] Shaders reloaded successfully.")
+            log.info("Shaders reloaded successfully.")
         except Exception as e:
-            print("[ERROR] Shader reload failed:", e)
+            log.error("Shader reload failed: %s", e)
             traceback.print_exc()
 
-    print("[INFO] Starting watcher...")
+    log.info("Starting watcher...")
     try:
         watch = watcher.watch([vsh.parent, fsh.parent], reload_shaders)
-        print("[DEBUG] Watcher started.")
+        log.debug("Watcher started.")
     except Exception as e:
-        print("[ERROR] Watcher failed:", e)
+        log.error("Watcher failed: %s", e)
         traceback.print_exc()
 
     cam_pos = np.array([3.0, 3.0, 3.0])
     cam_target = np.array([0.0, 0.0, 0.0])
-    print(f"[DEBUG] Camera initialized. Position: {cam_pos}, Target: {cam_target}")
+    log.debug(f"Camera initialized. Position: {cam_pos}, Target: {cam_target}")
 
-    print("[INFO] Entering main loop...")
+    log.info("Entering main loop...")
     frame = 0
     try:
         while not glfw.window_should_close(window):
-            print(f"[TRACE] Frame {frame} start.")
+            log.debug(f"Frame {frame} start.")
             glfw.poll_events()
             width, height = glfw.get_window_size(window)
             aspect = width / height if height != 0 else 1.0
-            print(f"[DEBUG] Window size: {width}x{height} (aspect {aspect})")
+            log.debug(f"Window size: {width}x{height} (aspect {aspect})")
             try:
                 mv, mvinv, proj = build_matrices(cam_pos, cam_target, 70.0, aspect)
-                print("[DEBUG] Matrices built.")
+                log.debug("Matrices built.")
             except Exception as e:
-                print("[ERROR] Camera matrix calculation failed:", e)
+                log.error("Camera matrix calculation failed: %s", e)
                 traceback.print_exc()
                 break
 
@@ -209,7 +213,7 @@ def main(argv: list[str] | None = None) -> None:
                 if "iResolution" in prog:
                     prog["iResolution"].value = (float(width), float(height))
             except Exception as e:
-                print("[ERROR] Uniform update failed:", e)
+                log.error("Uniform update failed: %s", e)
                 traceback.print_exc()
 
             for name, unit in IRIS_TEXTURE_UNITS.items():
@@ -218,7 +222,7 @@ def main(argv: list[str] | None = None) -> None:
                         white_tex.use(location=unit)
                         prog[name].value = unit
                 except Exception as e:
-                    print(f"[ERROR] Texture/unit assignment failed for {name}:", e)
+                    log.error("Texture/unit assignment failed for %s: %s", name, e)
                     traceback.print_exc()
 
             try:
@@ -226,32 +230,32 @@ def main(argv: list[str] | None = None) -> None:
                 ctx.clear(0.1, 0.1, 0.1, 1.0)
                 ctx.clear(0.1, 0.1, 0.1, 1.0)
             except Exception as e:
-                print("[ERROR] GL context setup failed:", e)
+                log.error("GL context setup failed: %s", e)
                 traceback.print_exc()
 
             try:
                 vao.render()
                 ctx.finish()  # Forces all pending GL commands to complete
-                print("[TRACE] VAO rendered.")
+                log.debug("VAO rendered.")
             except Exception as e:
-                print("[ERROR] Render failed:", e)
+                log.error("Render failed: %s", e)
                 traceback.print_exc()
 
             if overlay:
                 try:
                     overlay.draw({})
-                    print("[TRACE] Post overlay draw")
+                    log.debug("Post overlay draw")
                 except Exception as e:
-                    print("[ERROR] Overlay draw failed:", e)
+                    log.error("Overlay draw failed: %s", e)
                     traceback.print_exc()
             else:
-                print("[TRACE] Overlay not available, skipping draw")
+                log.debug("Overlay not available, skipping draw")
 
             try:
                 glfw.swap_buffers(window)
-                print("[TRACE] Post swap buffers")
+                log.debug("Post swap buffers")
             except Exception as e:
-                print("[ERROR] Buffer swap failed:", e)
+                log.error("Buffer swap failed: %s", e)
                 traceback.print_exc()
 
             time.sleep(1)
@@ -259,20 +263,20 @@ def main(argv: list[str] | None = None) -> None:
             frame += 1
 
     except Exception as e:
-        print("[ERROR] Main loop crashed:", e)
+        log.error("Main loop crashed: %s", e)
         traceback.print_exc()
     finally:
         try:
             watch.stop()
         except Exception as e:
-            print("[ERROR] Watcher stop failed:", e)
+            log.error("Watcher stop failed: %s", e)
         glfw.terminate()
-        print("[INFO] Exiting...")
+        log.info("Exiting...")
 
 if __name__ == "__main__":
-    print("[TRACE] Script invoked directly.")
+    log.debug("Script invoked directly.")
     try:
         main()
     except Exception as e:
-        print("[ERROR] Fatal exception in main():", e)
+        log.error("Fatal exception in main(): %s", e)
         traceback.print_exc()

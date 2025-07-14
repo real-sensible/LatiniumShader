@@ -15,6 +15,10 @@ from typing import Callable, Optional
 
 import numpy as np
 
+from utils.debug import get_logger
+
+log = get_logger(__name__)
+
 
 @dataclass
 class Sample:
@@ -36,6 +40,7 @@ class Reservoir:
 
     def update(self, candidate: Sample, weight: float) -> None:
         """Consider ``candidate`` for inclusion in the reservoir."""
+        log.debug("Updating reservoir with weight=%s", weight)
         self.wsum += weight
         self.M += 1
         if random.random() < weight / self.wsum:
@@ -53,4 +58,6 @@ class Reservoir:
         """Return the RIS weight for the stored sample."""
         if self.sample is None:
             return 0.0
-        return self.wsum / max(1, self.M) / target_func(self.sample)
+        weight = self.wsum / max(1, self.M) / target_func(self.sample)
+        log.debug("Computed reservoir weight=%s", weight)
+        return weight
