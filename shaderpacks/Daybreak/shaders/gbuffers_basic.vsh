@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 vaPosition;
 layout(location = 1) in vec2 vaUV0;
-layout(location = 2) in vec3 vaColor;
+layout(location = 2) in vec3 vaColor; // vertex color (RGB)
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
